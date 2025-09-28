@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Dashboard de Vuelos</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 font-sans">
+    <div class="container mx-auto px-4 py-6">
+        <h1 class="text-3xl font-bold text-center text-blue-600 mb-8">Vuelos por hora - Dashboard</h1>
+
+        <div class="mb-6 flex justify-center gap-4">
+            <select id="year" class="p-2 border rounded"></select>
+            <select id="month" class="p-2 border rounded"></select>
+            <select id="day" class="p-2 border rounded"></select>
+            <button onclick="loadChart()" class="bg-blue-600 text-white px-4 py-2 rounded">Buscar</button>
+        </div>
+
+        <div class="bg-white p-6 rounded-lg shadow-lg">
+            <canvas id="flightsChart" height="300"></canvas>
+        </div>
+    </div>
+
+    <script>
+        async function loadFilters() {
+            const res = await fetch("/api/filters");
+            const data = await res.json();
+
+            fillSelect("year", data.years);
+            fillSelect("month", data.months);
+            fillSelect("day", data.days);
+        }
+
+        function fillSelect(id, values) {
+            const select = document.getElementById(id);
+            select.innerHTML = values.map(v => `<option value="${v}">${v}</option>`).join('');
+        }
+
+        async function loadChart() {
+            const year = document.getElementById('year').value;
+            const month = document.getElementById('month').value;
+            const day = document.getElementById('day').value;
+
+            const res = await fetch(`/api/flights-per-hour?year=${year}&month=${month}&day=${day}`);
+            const data = await res.json();
+
+            const ctx = document.getElementById('flightsChart').getContext('2d');
+            if (window.flightsChart) window.flightsChart.destroy();
+
+            window.flightsChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: data.labels,
+                    datasets: [{
+                        label: 'Vuelos por hora',
+                        data: data.data,
+                        backgroundColor: 'rgba(54, 162, 235, 0.5)',
+                        borderColor: 'rgba(54, 162, 235, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    scales: {
+                        x: { title: { display: true, text: 'Hora' } },
+                        y: { beginAtZero: true, title: { display: true, text: 'Cantidad de vuelos' } }
+                    }
+                }
+            });
+        }
+
+        loadFilters();
+    </script>
+</body>
+</html>

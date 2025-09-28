@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dashboard de Tráfico Aéreo</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.3.0/dist/chart.umd.min.js"></script>
+</head>
+<body class="bg-gray-100">
+
+  <div class="flex h-screen">
+    <!-- Menú lateral -->
+    <aside class="w-64 bg-white shadow-md p-6">
+      <h2 class="text-2xl font-bold text-blue-600 mb-6">Dashboard</h2>
+      <nav class="space-y-4">
+        <a href="/vuelos" data-section="vuelosPorDiaSection" class="block text-gray-700 hover:text-blue-600 font-medium">Estadisticas de Vuelo</a>
+        <a href="/aerolineas" data-section="aerolineasSection" class="block text-gray-700 hover:text-blue-600 font-medium">Aerolineas</a>
+        <a href="/ia" data-section="iaSection" class="block text-gray-700 hover:text-blue-600 font-medium">Inteligencia Artificial</a>
+      </nav>
+    </aside>
+
+    <!-- Contenido principal -->
+    <main class="flex-1 p-10 space-y-6">
+      <!-- Vuelos por Día -->
+      <section id="vuelosPorDiaSection">
+        <h1 class="text-3xl font-bold text-gray-800 mb-4">Estadisticas de Vuelos</h1>
+        <!-- Filtros -->
+        <div class="flex flex-wrap gap-4 mb-4">
+          <select id="year" class="p-2 border rounded bg-white text-gray-700">
+            <option value="">Año</option>
+          </select>
+          <select id="month" class="p-2 border rounded bg-white text-gray-700">
+            <option value="">Mes</option>
+          </select>
+          <select id="day" class="p-2 border rounded bg-white text-gray-700">
+            <option value="">Día</option>
+          </select>
+          <button id="applyFilters" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Aplicar Filtros</button>
+        </div>
+
+        <div id="loading" class="hidden text-center text-gray-500">Cargando datos...</div>
+        <div id="noData" class="hidden text-center text-red-500 font-medium">No hay datos disponibles para la fecha seleccionada.</div>
+
+        <div class="bg-white p-6 rounded shadow-md mt-10">
+          <h2 class="text-xl font-semibold text-gray-700 mb-4">Vuelos por Hora</h2>
+          <canvas id="vuelosPorDiaChart" height="100"></canvas>
+        </div>
+
+        <div class="bg-white p-6 rounded shadow-md mt-10">
+          <h2 class="text-xl font-semibold text-gray-700 mb-4">Vuelos por Mes</h2>
+          <canvas id="vuelosPorMesChart" height="100"></canvas>
+        </div>
+
+        <div class="bg-white p-6 rounded shadow-md mt-10">
+          <h2 class="text-xl font-semibold text-gray-700 mb-4">Vuelos por Día (en el mes seleccionado)</h2>
+          <canvas id="vuelosPorDiaEnMesChart" height="100"></canvas>
+        </div>
+      </section>
+
+      <!-- Aerolíneas -->
+      <section id="aerolineasSection" class="hidden">
+        <h1 class="text-3xl font-bold text-gray-800 mb-6">Estadísticas de Aerolíneas</h1>
+
+        <div class="mb-4">
+          <label for="topNSelect" class="block text-gray-700 font-semibold mb-2">Mostrar:</label>
+          <select id="topNSelect" class="border border-gray-300 rounded p-2">
+            <option value="10" selected>Top 10</option>
+            <option value="20">Top 20</option>
+            <option value="50">Top 50</option>
+            <option value="100">Top 100</option>
+            <option value="all">Todos</option>
+          </select>
+        </div>
+
+        <div id="loadingAerolineas" class="text-center text-gray-500 hidden">Cargando datos de aerolíneas...</div>
+        <div id="noDataAerolineas" class="text-center text-red-500 font-medium hidden">No se encontraron datos de aerolíneas.</div>
+
+        <div class="bg-white p-6 rounded shadow-md mb-6">
+          <h2 class="text-xl font-semibold mb-4 text-gray-700">Número de vuelos por aerolínea</h2>
+          <canvas id="vuelosPorAerolineaChart" height="100"></canvas>
+        </div>
+
+        <div class="bg-white p-6 rounded shadow-md mb-6">
+          <h2 class="text-xl font-semibold mb-4 text-gray-700">Aeropuertos de salida más frecuentes</h2>
+          <canvas id="aeropuertosSalidaChart" height="100"></canvas>
+        </div>
+
+        <div class="bg-white p-6 rounded shadow-md">
+          <h2 class="text-xl font-semibold mb-4 text-gray-700">Aeropuertos de destino más frecuentes</h2>
+          <canvas id="aeropuertosDestinoChart" height="100"></canvas>
+        </div>
+      </section>
+
+      <!-- Inteligencia Artificial (placeholder) -->
+      <section id="iaSection" class="hidden">
+        <h1 class="text-3xl font-bold text-gray-800">Inteligencia Artificial</h1>
+        <p class="text-gray-600 mt-4">Aquí podrás integrar modelos de IA en el futuro.</p>
+      </section>
+    </main>
+  </div>
+
+  <!-- Scripts -->
+  <script src="/static/js/vuelos_por_dia.js"></script>
+  <script src="/static/js/aerolineas.js"></script>
+  <script>
+    const tabMap = {
+      '/vuelos': 'vuelosPorDiaSection',
+      '/aerolineas': 'aerolineasSection',
+      '/ia': 'iaSection'
+    };
+
+    const reverseTabMap = {
+      'vuelosPorDiaSection': '/vuelos',
+      'aerolineasSection': '/aerolineas',
+      'iaSection': '/ia'
+    };
+
+    function showSection(sectionId) {
+      document.querySelectorAll("main > section").forEach(section => {
+        section.classList.add("hidden");
+      });
+
+      const section = document.getElementById(sectionId);
+      if (section) {
+        section.classList.remove("hidden");
+
+        // Si es aerolíneas, actualiza los charts
+        if (sectionId === 'aerolineasSection') {
+          renderAerolineasChart?.();
+          renderAeropuertosChart?.();
+        }
+      }
+    }
+
+    // Al hacer clic en enlaces del menú
+    document.querySelectorAll("aside nav a").forEach(link => {
+      link.addEventListener("click", (e) => {
+        e.preventDefault();
+        const sectionId = link.getAttribute('data-section');
+        const newPath = reverseTabMap[sectionId];
+        if (sectionId) {
+          showSection(sectionId);
+          history.pushState({ sectionId }, '', newPath);
+        }
+      });
+    });
+
+    // Al navegar con el botón atrás/adelante
+    window.addEventListener("popstate", (event) => {
+      if (event.state?.sectionId) {
+        showSection(event.state.sectionId);
+      }
+    });
+
+    // Al cargar, muestra la sección correcta
+    const initialPath = window.location.pathname;
+    const initialSection = tabMap[initialPath] || 'vuelosPorDiaSection';
+    showSection(initialSection);
+    history.replaceState({ sectionId: initialSection }, '', initialPath);
+  </script>
+</body>
+</html>

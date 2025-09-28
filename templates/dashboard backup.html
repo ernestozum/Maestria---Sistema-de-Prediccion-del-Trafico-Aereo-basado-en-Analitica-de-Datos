@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Dashboard de Vuelos</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 font-sans leading-normal tracking-normal">
+
+    <div class="container mx-auto px-4 py-6">
+        <h1 class="text-3xl font-bold text-center text-blue-600 mb-8">Número de vuelos por día</h1>
+
+        <div class="bg-white p-6 rounded-lg shadow-lg">
+            <canvas id="flightsChart" width="800" height="400"></canvas>
+        </div>
+    </div>
+
+    <script>
+        fetch("/api/flights-per-day")
+            .then(response => response.json())
+            .then(data => {
+                const ctx = document.getElementById('flightsChart').getContext('2d');
+                new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: data.labels,
+                        datasets: [{
+                            label: 'Número de vuelos',
+                            data: data.data,
+                            fill: false,
+                            borderColor: 'rgb(75, 192, 192)',
+                            backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                            tension: 0.3
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            legend: {
+                                display: true,
+                                position: 'top'
+                            },
+                            title: {
+                                display: true,
+                                text: 'Tendencia diaria de vuelos procesados',
+                                font: {
+                                    size: 18
+                                }
+                            }
+                        },
+                        scales: {
+                            x: {
+                                title: {
+                                    display: true,
+                                    text: 'Fecha'
+                                }
+                            },
+                            y: {
+                                beginAtZero: true,
+                                title: {
+                                    display: true,
+                                    text: 'Número de vuelos'
+                                }
+                            }
+                        }
+                    }
+                });
+            })
+            .catch(error => {
+                console.error("❌ Error cargando datos del gráfico:", error);
+            });
+    </script>
+
+</body>
+</html>
